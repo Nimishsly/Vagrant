@@ -1,0 +1,16 @@
+Vagrant.configure("2") do |config|
+  # Base box configuration
+  config.vm.box = "eurolinux-vagrant/centos-stream-9"
+
+  # Provider-specific configuration for VirtualBox
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+  end
+
+  # Provisioning with a shell script
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo yum update -y
+    sudo yum install -y httpd
+  SHELL
+end
+
