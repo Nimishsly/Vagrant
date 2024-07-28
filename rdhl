@@ -1,0 +1,49 @@
+# Vagrantfile for Red Hat with customizable options and httpd deployment
+
+Vagrant.configure("2") do |config|
+  # Specify the base box
+  config.vm.box = "generic/rhel8" # Ensure you have the appropriate box. You can change this based on your RHEL version.
+
+  # Customize the VM's hostname
+  config.vm.hostname = "my-rhel-vm"
+
+  # Network settings
+  config.vm.network "private_network", type: "dhcp"
+
+  # Customize VM provider settings
+  config.vm.provider "virtualbox" do |vb|
+    # Name of the VM in VirtualBox
+    vb.name = "RedHatVM"
+
+    # Customize memory and CPU
+    vb.memory = ENV.fetch("VM_MEMORY", 2048) # Default is 2048 MB
+    vb.cpus = ENV.fetch("VM_CPUS", 2) # Default is 2 CPUs
+  end
+
+  # Provisioning with a shell script to install and configure httpd
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "Updating the system..."
+    sudo yum -y update
+
+    echo "Installing httpd..."
+    sudo yum -y install httpd
+
+    echo "Starting httpd service..."
+    sudo systemctl start httpd
+
+    echo "Enabling httpd service to start on boot..."
+    sudo systemctl enable httpd
+
+    echo "Setting up firewall rules to allow HTTP traffic..."
+    sudo firewall-cmd --permanent --add-service=http
+    sudo firewall-cmd --reload
+
+    echo "Creating a sample index.html page..."
+    echo "<html><body><h1>Welcome to my RHEL VM!</h1></body></html>" | sudo tee /var/www/html/index.html
+
+    echo "Deployment of httpd is complete!"
+  SHELL
+
+  # Optional: Sync a folder from host to guest
+  # config.vm.synced_folder "../data", "/vagrant_data"
+end
